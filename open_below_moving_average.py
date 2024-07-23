@@ -1,10 +1,7 @@
 import requests
 import os
-import pprint
+from pprint import pprint
 
-# Adding a new comment
-
-pprint.pprint(os.environ)
 api_key = os.environ['FMPAPIKEY']
 
 class FMPAPI:
@@ -41,11 +38,27 @@ class FMPAPI:
     url = self.getApiURLRoot() + '/historical-chart/5min/' + symbol
     return self.callAPIAndReturnJSON(url, {'from': start, 'to': end})
 
+  def historical_price(self, symbol, d):
+    url = self.getApiURLRoot() + '/historical-price-full/' + symbol
+    return self.callAPIAndReturnJSON(url, {'from': d, 'to': d})
+
+  def beat_market_percentage(self, symbol, start, end):
+    stock_price_init = self.historical_price(symbol, start)
+    stock_price_end = self.historical_price(symbol, end)
+    market_price_init = self.historical_price('VTI', start)
+    market_price_end = self.historical_price('VTI', end)
+    stock_percentage_change = (stock_price_end - stock_price_init) / stock_price_init
+    market_percentage_change = (market_price_end - market_price_init) / market_price_init
+    return [stock_percentage_change > market_percentage_change, 
+            stock_percentage_change, market_percentage_change]
+
     
 
-from pprint import pprint
 api = FMPAPI(api_key)
-#data = api.realtime_quote('META')
+data = api.historical_price('META', '2024-07-22')
+pprint(data)
+exit()
+data = api.realtime_quote('META')
 data = api.historical_chart_5_min('META', '2024-07-23', '2024-07-23')
 #######
 
